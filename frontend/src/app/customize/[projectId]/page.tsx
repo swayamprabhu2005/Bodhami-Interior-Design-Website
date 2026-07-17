@@ -7,7 +7,8 @@ import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronRight, ArrowRight, CheckCircle2, ShoppingBag,
-  Info, Sparkles, AlertCircle, Settings, Sliders, ChevronDown
+  Info, Sparkles, AlertCircle, Settings, Sliders, ChevronDown,
+  ChevronLeft, Image as ImageIcon
 } from 'lucide-react'
 import clsx from 'clsx'
 import { getBestColorMatch, getColorHex } from '@/lib/colorUtils'
@@ -68,6 +69,11 @@ export default function GuidedCustomizePage() {
 
   // Active customization state
   const [customizingProduct, setCustomizingProduct] = useState<any>(null)
+  const [activeImageIdx, setActiveImageIdx] = useState(0)
+
+  useEffect(() => {
+    setActiveImageIdx(0)
+  }, [customizingProduct?.id])
   const [customColor, setCustomColor] = useState('')
   const [customFabric, setCustomFabric] = useState('')
   const [customWoodFinish, setCustomWoodFinish] = useState('')
@@ -244,6 +250,10 @@ export default function GuidedCustomizePage() {
       </div>
     )
   }
+
+  const galleryImages = customizingProduct
+    ? (customizingProduct.images || customizingProduct.variants?.images || [])
+    : []
 
   return (
     <div className="min-h-screen text-slate-800 pb-20" style={{ background: 'linear-gradient(135deg, #dfd9d4 0%, #bed4e3 20%, #6062ed 60%, #322e6b 100%)', backgroundAttachment: 'fixed' }}>
@@ -510,15 +520,79 @@ export default function GuidedCustomizePage() {
                 </div>
 
                 <div className="grid md:grid-cols-12 gap-6">
-                  {/* Left Column: Product Info Card */}
+                  {/* Left Column: Product Info Card with Image Gallery Slider */}
                   <div className="md:col-span-5 bg-slate-950/40 border border-white/5 p-4 rounded-2xl flex flex-col justify-between">
                     <div>
-                      <img
-                        src={customizingProduct.thumbnail_url}
-                        alt={customizingProduct.name}
-                        className="w-full aspect-square object-cover rounded-xl mb-4"
-                      />
-                      <h4 className="text-sm font-extrabold text-white">{customizingProduct.name}</h4>
+                            {/* Image Viewer with Navigation Arrows */}
+                            <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-3 group bg-slate-900 border border-white/5 flex items-center justify-center">
+                              {galleryImages[activeImageIdx] ? (
+                                <img
+                                  src={galleryImages[activeImageIdx].startsWith('/') ? `http://localhost:8000${galleryImages[activeImageIdx]}` : galleryImages[activeImageIdx]}
+                                  alt={customizingProduct.name}
+                                  className="w-full h-full object-cover transition-all duration-300"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-slate-900/90 select-none">
+                                  <ImageIcon className="w-8 h-8 text-slate-600 mb-2 animate-pulse" />
+                                  <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Optional View Not Uploaded</h5>
+                                  <p className="text-[9px] text-slate-500 mt-1 max-w-xs leading-relaxed">
+                                    The vendor has only provided the primary view for this component.
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {/* Navigation Arrows */}
+                              <button
+                                type="button"
+                                onClick={() => setActiveImageIdx((prev) => (prev === 0 ? 2 : prev - 1))}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md border border-white/10"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveImageIdx((prev) => (prev === 2 ? 0 : prev + 1))}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md border border-white/10"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            {/* Thumbnail Indicators (Amazon/Flipkart style) */}
+                            <div className="grid grid-cols-3 gap-2.5 mb-4">
+                              {[0, 1, 2].map((idx) => {
+                                const imgUrl = galleryImages[idx]
+                                const isActive = activeImageIdx === idx
+                                const label = idx === 0 ? "Front" : idx === 1 ? "Side" : "Top"
+                                
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => setActiveImageIdx(idx)}
+                                    className={clsx(
+                                      "relative h-12 rounded-lg overflow-hidden border transition flex flex-col items-center justify-center text-center p-1",
+                                      isActive ? "border-indigo-500 bg-indigo-500/10 shadow-sm" : "border-white/5 bg-slate-900/40 hover:bg-slate-900/80 hover:border-slate-700"
+                                    )}
+                                  >
+                                    {imgUrl ? (
+                                      <img
+                                        src={imgUrl.startsWith('/') ? `http://localhost:8000${imgUrl}` : imgUrl}
+                                        alt={`Thumb ${idx}`}
+                                        className="w-full h-full object-cover rounded"
+                                      />
+                                    ) : (
+                                      <div className="flex flex-col items-center justify-center">
+                                        <ImageIcon className="w-3.5 h-3.5 text-slate-650 mb-0.5" />
+                                        <span className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">{label} N/A</span>
+                                      </div>
+                                    )}
+                                  </button>
+                                )
+                              })}
+                            </div>
+
+                            <h4 className="text-sm font-extrabold text-white">{customizingProduct.name}</h4>
                       <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
                         Design variant elements will overlay inside the visual rendering engine.
                       </p>

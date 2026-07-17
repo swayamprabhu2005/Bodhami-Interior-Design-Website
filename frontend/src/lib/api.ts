@@ -372,10 +372,10 @@ export const vendorAPI = {
     axiosInstance.put(`/api/v1/vendor/products/${productId}`, data),
   deleteProduct: (productId: string) =>
     axiosInstance.delete(`/api/v1/vendor/products/${productId}`),
-  uploadProductImage: (productId: string, file: File) => {
+  uploadProductImage: (productId: string, file: File, viewIndex: number = 0) => {
     const fd = new FormData()
     fd.append('file', file)
-    return axiosInstance.post(`/api/v1/vendor/products/${productId}/image`, fd, {
+    return axiosInstance.post(`/api/v1/vendor/products/${productId}/image?view_index=${viewIndex}`, fd, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },

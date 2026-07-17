@@ -8,7 +8,8 @@ import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles, ArrowLeft, Clock, CheckCircle2, Download,
-  Image as ImageIcon, RefreshCw, X, Layout, AlignLeft, Settings
+  Image as ImageIcon, RefreshCw, X, Layout, AlignLeft, Settings,
+  ChevronLeft, ChevronRight
 } from 'lucide-react'
 import clsx from 'clsx'
 import { getBestColorMatch, getColorHex } from '@/lib/colorUtils'
@@ -141,6 +142,11 @@ export default function ControlledVisualizePage() {
 
   // Swap / variant customization drawer
   const [swappingItem, setSwappingItem] = useState<any>(null)
+  const [activeSwapImageIdx, setActiveSwapImageIdx] = useState(0)
+
+  useEffect(() => {
+    setActiveSwapImageIdx(0)
+  }, [swappingItem?.id])
   const [alternativeProducts, setAlternativeProducts] = useState<any[]>([])
   const [swappingColor, setSwappingColor] = useState('')
   const [swappingFabric, setSwappingFabric] = useState('')
@@ -388,6 +394,10 @@ export default function ControlledVisualizePage() {
       </div>
     )
   }
+
+  const swapGalleryImages = swappingItem?.product
+    ? (swappingItem.product.images || swappingItem.product.variants?.images || [])
+    : []
 
   return (
     <div className="min-h-screen text-slate-800 pb-20" style={{ background: 'linear-gradient(135deg, #dfd9d4 0%, #bed4e3 20%, #6062ed 60%, #322e6b 100%)', backgroundAttachment: 'fixed' }}>
@@ -835,6 +845,78 @@ export default function ControlledVisualizePage() {
               
               {/* Product Variant Details Panel */}
               <div className="space-y-4 border-r border-white/5 pr-6">
+                
+                {/* Image Gallery Carousel Slider */}
+                <div className="mb-4">
+                  <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2.5 group bg-slate-950 border border-white/5 flex items-center justify-center">
+                    {swapGalleryImages[activeSwapImageIdx] ? (
+                      <img
+                        src={swapGalleryImages[activeSwapImageIdx].startsWith('/') ? `http://localhost:8000${swapGalleryImages[activeSwapImageIdx]}` : swapGalleryImages[activeSwapImageIdx]}
+                        alt={swappingItem.product?.name}
+                        className="w-full h-full object-cover transition-all duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-5 text-center bg-slate-950 select-none">
+                        <ImageIcon className="w-7 h-7 text-slate-700 mb-2 animate-pulse" />
+                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Optional View Not Uploaded</h5>
+                        <p className="text-[9px] text-slate-500 mt-1 max-w-xs leading-normal">
+                          The vendor has only provided the primary view for this component.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Navigation Arrows */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveSwapImageIdx((prev) => (prev === 0 ? 2 : prev - 1))}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-7.5 h-7.5 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md border border-white/10"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSwapImageIdx((prev) => (prev === 2 ? 0 : prev + 1))}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-7.5 h-7.5 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md border border-white/10"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Thumbnail Indicators */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[0, 1, 2].map((idx) => {
+                      const imgUrl = swapGalleryImages[idx]
+                      const isActive = activeSwapImageIdx === idx
+                      const label = idx === 0 ? "Front" : idx === 1 ? "Side" : "Top"
+                      
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveSwapImageIdx(idx)}
+                          className={clsx(
+                            "relative h-11 rounded-lg overflow-hidden border transition flex flex-col items-center justify-center text-center p-1",
+                            isActive ? "border-indigo-500 bg-indigo-500/10 shadow-sm" : "border-white/5 bg-slate-950/40 hover:bg-slate-950/80 hover:border-slate-800"
+                          )}
+                        >
+                          {imgUrl ? (
+                            <img
+                              src={imgUrl.startsWith('/') ? `http://localhost:8000${imgUrl}` : imgUrl}
+                              alt={`Thumb ${idx}`}
+                              className="w-full h-full object-cover rounded"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center">
+                              <ImageIcon className="w-3 h-3 text-slate-700 mb-0.5" />
+                              <span className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">{label} N/A</span>
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Available Variants</h4>
                 
                 {swappingItem.product?.variants?.color && (() => {

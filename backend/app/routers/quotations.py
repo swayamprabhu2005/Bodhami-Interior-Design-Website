@@ -119,6 +119,7 @@ def generate_quotation(
     db.commit()
 
     return {
+        "id": quot_id,
         "quotation_id": quot_id,
         "subtotal": subtotal,
         "gst": gst,
@@ -126,6 +127,7 @@ def generate_quotation(
         "pdf_url": pdf_url,
         "valid_until": valid_until,
         "line_items": line_items,
+        "status": "generated",
     }
 
 

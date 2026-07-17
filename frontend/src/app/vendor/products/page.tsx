@@ -106,9 +106,9 @@ export default function VendorProductsPage() {
     return nameMatch && catMatch && colorMatch && priceMatch
   })
 
-  // Product image state
-  const [productImageFile, setProductImageFile] = useState<File | null>(null)
-  const [productImagePreview, setProductImagePreview] = useState<string>('')
+  // Product image state (3 slots: Main View, View 2, View 3)
+  const [productImageFiles, setProductImageFiles] = useState<(File | null)[]>([null, null, null])
+  const [productImagePreviews, setProductImagePreviews] = useState<string[]>(['', '', ''])
   const [uploadingImage, setUploadingImage] = useState(false)
 
 
@@ -192,8 +192,9 @@ export default function VendorProductsPage() {
       setTextureOptions(v.texture || [])
       setWoodFinishOptions(v.wood_finish || [])
       setCushionStyleOptions(v.cushion_style || [])
-      setProductImagePreview(editingProduct.images?.[0] || '')
-      setProductImageFile(null)
+      const imgs = editingProduct.images || []
+      setProductImagePreviews([imgs[0] || '', imgs[1] || '', imgs[2] || ''])
+      setProductImageFiles([null, null, null])
 
       setPrimaryMaterial(editingProduct.primaryMaterial || editingProduct.primary_material || '')
       setWidth(editingProduct.width || '')
@@ -228,7 +229,8 @@ export default function VendorProductsPage() {
     setColors([])
     setFabricOptions([]); setSizeOptions([]); setTextureOptions([])
     setWoodFinishOptions([]); setCushionStyleOptions([])
-    setProductImageFile(null); setProductImagePreview('')
+    setProductImageFiles([null, null, null])
+    setProductImagePreviews(['', '', ''])
     setCustomColor('')
 
     setPrimaryMaterial('')
@@ -301,15 +303,21 @@ export default function VendorProductsPage() {
       await loadColors()
 
 
-      // Upload product image if one was selected
-      if (productImageFile && productId) {
+      // Upload product images (up to 3 slots)
+      const uploadPromises = productImageFiles.map(async (file, idx) => {
+        if (file && productId) {
+          return vendorAPI.uploadProductImage(productId, file, idx)
+        }
+      }).filter(Boolean)
+
+      if (uploadPromises.length > 0) {
         setUploadingImage(true)
         try {
-          await vendorAPI.uploadProductImage(productId, productImageFile)
-          toast.success('Product photo uploaded! 📸')
+          await Promise.all(uploadPromises)
+          toast.success('Product photos uploaded! 📸')
         } catch (uploadErr) {
           console.error("Photo upload error:", uploadErr)
-          toast.error('Product details saved, but photo upload failed.')
+          toast.error('Product details saved, but some photo uploads failed.')
         } finally {
           setUploadingImage(false)
         }
@@ -727,61 +735,75 @@ export default function VendorProductsPage() {
                 </div>
               </div>
 
-
-              {/* Product Photo Upload Section */}
+              {/* Product Photo Upload Section (3 slots) */}
               <div className="border border-indigo-150 bg-indigo-50/20 rounded-2xl p-4 space-y-3">
                 <label className="block text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-indigo-500" />
-                  <span>Real Product Photo (Shown to Customers)</span>
+                  <span>Product Photos / Multi-View Images (Upload up to 3 slots)</span>
                 </label>
-                <div className="flex items-center gap-4">
-                  {productImagePreview ? (
-                    <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-indigo-200 bg-slate-50 flex-shrink-0">
-                      <img
-                        src={productImagePreview.startsWith('/') ? `http://localhost:8000${productImagePreview}` : productImagePreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => { setProductImageFile(null); setProductImagePreview('') }}
-                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-750 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shadow-md"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-20 h-20 rounded-xl border-2 border-dashed border-indigo-200 bg-white flex items-center justify-center flex-shrink-0">
-                      <ImageIcon className="w-6 h-6 text-indigo-300" />
-                    </div>
-                  )}
-
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      id="product-image-file-input"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          setProductImageFile(file)
-                          setProductImagePreview(URL.createObjectURL(file))
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor="product-image-file-input"
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-750 text-white text-xs font-bold rounded-xl transition shadow-sm"
-                    >
-                      <Camera className="w-3.5 h-3.5" />
-                      {productImagePreview ? 'Replace Photo' : 'Upload Photo'}
-                    </label>
-                    <p className="text-[10px] text-slate-450 mt-1 font-medium">
-                      Select JPG, PNG or WebP image. This real photo will show up for customization.
-                    </p>
-                  </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[0, 1, 2].map((slotIdx) => {
+                    const preview = productImagePreviews[slotIdx]
+                    const label = slotIdx === 0 ? "Main View *" : slotIdx === 1 ? "Side View (Optional)" : "Perspective (Optional)"
+                    
+                    return (
+                      <div key={slotIdx} className="bg-white border border-slate-200/80 rounded-xl p-3 flex flex-col items-center justify-center text-center relative group">
+                        <div className="text-[10px] font-bold text-slate-400 mb-2">{label}</div>
+                        
+                        {preview ? (
+                          <div className="relative w-full h-24 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
+                            <img
+                              src={preview.startsWith('/') ? `http://localhost:8000${preview}` : preview}
+                              alt={`Slot ${slotIdx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newFiles = [...productImageFiles]
+                                newFiles[slotIdx] = null
+                                setProductImageFiles(newFiles)
+                                
+                                const newPreviews = [...productImagePreviews]
+                                newPreviews[slotIdx] = ''
+                                setProductImagePreviews(newPreviews)
+                              }}
+                              className="absolute top-1 right-1 bg-red-650 hover:bg-red-750 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shadow-md transition"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer w-full h-24 rounded-lg border-2 border-dashed border-slate-250 hover:border-indigo-400 bg-slate-50/50 flex flex-col items-center justify-center transition group-hover:bg-slate-50">
+                            <ImageIcon className="w-5 h-5 text-slate-300 mb-1 group-hover:text-indigo-450 transition" />
+                            <span className="text-[9px] text-slate-400 font-bold uppercase group-hover:text-indigo-500">Upload Image</span>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) {
+                                  const newFiles = [...productImageFiles]
+                                  newFiles[slotIdx] = file
+                                  setProductImageFiles(newFiles)
+                                  
+                                  const newPreviews = [...productImagePreviews]
+                                  newPreviews[slotIdx] = URL.createObjectURL(file)
+                                  setProductImagePreviews(newPreviews)
+                                }
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
+                <p className="text-[9px] text-slate-400 font-medium">
+                  Uploading Main View is highly recommended. The other slots are optional to show different angles (e.g. side, back, top) to customers.
+                </p>
               </div>
 
               {/* Description */}

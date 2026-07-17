@@ -114,6 +114,7 @@ class Product(Base):
     color_variants = Column(JSON, default=list)
     variants = Column(JSON, default=dict) # Options dictionary (color, fabric, size, texture, wood_finish, cushion_style)
     thumbnail_url = Column(String)
+    images = Column(JSON, default=list)
     model_url = Column(String)
     style_tags = Column(JSON, default=list)
     primary_material = Column(String, default="Solid Wood")

@@ -225,7 +225,8 @@ def seed_images_to_db():
             "wood_finish": ["Matte", "Glossy", "Teak"] if meta["category"] in ["Furniture", "coffee_tables", "side_tables"] else [],
             "size": ["Standard"],
             "texture": ["Matte"],
-            "cushion_style": ["Tufted"] if meta["category"] == "sofas" else []
+            "cushion_style": ["Tufted"] if meta["category"] == "sofas" else [],
+            "images": [thumbnail_url]
         })
         style_tags = json.dumps(meta["style_tags"])
 
@@ -233,11 +234,12 @@ def seed_images_to_db():
         cursor.execute("""
             INSERT INTO products (
                 id, sku, name, category, subcategory, vendor_id, room_type, price,
-                color_variants, variants, thumbnail_url, style_tags, description
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                color_variants, variants, thumbnail_url, style_tags, description, images
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             prod_id, sku, prod_name, meta["category"], meta["subcategory"], vendor_id, meta["room_type"], meta["price"],
-            color_variants, variants, thumbnail_url, style_tags, f"Premium {prod_name} designed for home renovations."
+            color_variants, variants, thumbnail_url, style_tags, f"Premium {prod_name} designed for home renovations.",
+            json.dumps([thumbnail_url])
         ))
         
         # 2. Insert into VendorProduct table (ONCE per unique item)
@@ -288,11 +290,12 @@ def seed_images_to_db():
             cursor.execute("""
                 INSERT INTO products (
                     id, sku, name, category, subcategory, vendor_id, room_type, price,
-                    color_variants, variants, thumbnail_url, style_tags, description
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    color_variants, variants, thumbnail_url, style_tags, description, images
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 prod_id_2, sku_2, prod_name, cat, subcat, vendor_id, "bedroom_2", meta["price"],
-                color_variants, variants, thumbnail_url, style_tags, f"Premium {prod_name} designed for bedroom renovations."
+                color_variants, variants, thumbnail_url, style_tags, f"Premium {prod_name} designed for bedroom renovations.",
+                json.dumps([thumbnail_url])
             ))
             seeded_count += 1
 

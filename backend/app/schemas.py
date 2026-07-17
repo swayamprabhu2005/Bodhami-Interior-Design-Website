@@ -125,6 +125,7 @@ class ProductOut(BaseModel):
     color_variants: List[str]
     variants: Optional[dict] = {}
     thumbnail_url: Optional[str] = None
+    images: List[str] = []
     style_tags: List[str]
     primary_material: Optional[str] = None
     width: Optional[float] = None

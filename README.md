@@ -48,6 +48,18 @@ InteriorAI is a comprehensive, premium web application designed to simplify the 
     Automatically synchronizes quotation items to verified vendor dashboards immediately upon quotation generation, removing vendor rejection permissions to ensure solid sourcing fulfillment.
 *   **AI Architecture Proposal Document (New):**  
     Added a comprehensive architectural report (`ai_architecture_proposal.docx`) to the project root, detailing the agentic spatial layout and color harmonization rules.
+*   **Automatic Tab Progression & Customizer Wizard (New):**  
+    When a customer saves the selection for the last category of a room, the customizer wizard automatically switches to the next room tab and pre-selects its first category.
+*   **Multi-View Product Image Upload Pipeline (New):**  
+    Allows vendors to upload up to 3 high-resolution images (Main/Front View, Side View, Perspective View) concurrently. The backend API maps them to specific view slots and sets the index-0 image as the product's primary thumbnail.
+*   **Thumbnail-based Gallery Carousels (New):**  
+    Integrates an Amazon/Flipkart-style image gallery slider inside both the Customer Customize drawer and the Customer Visualize swap drawer. Displays "Front", "Side", and "Top" indicators with next/prev arrows, failing back to a clean placeholder card if optional views are not uploaded.
+*   **Auto-Regenerating Quotations (New):**  
+    If a customer returns to the quotation page after editing their configurations when their previous quote was `'rejected'` or `'under_revision'`, the page automatically triggers a new PDF and quote calculations to present updated figures immediately.
+*   **Custom Glassmorphic Project Deletion (New):**  
+    Replaces browser native alerts with a premium glassmorphic confirmation modal featuring slide-up animations, backdrop blurs (`bg-white/80 backdrop-blur-xl`), and detailed info checks.
+*   **Seeded Assets Track Status:**  
+    The custom-generated component images in `backend/pdfs/catalog/` are tracked directly inside Git (deliberately omitted from `.gitignore`) to ensure a fresh repository clone receives the visual catalog out-of-the-box.
 
 ---
 

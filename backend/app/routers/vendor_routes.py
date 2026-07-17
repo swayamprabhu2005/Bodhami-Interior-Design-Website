@@ -767,6 +767,7 @@ def delete_vendor_product(
 @router.post("/products/{product_id}/image", summary="Upload product photo for vendor catalog")
 async def upload_product_image(
     product_id: str,
+    view_index: int = 0,
     file: UploadFile = File(...),
     user: User = Depends(current_user),
     db: Session = Depends(get_db)
@@ -787,7 +788,7 @@ async def upload_product_image(
         raise HTTPException(400, "Invalid image format. Use JPG, PNG, or WebP.")
 
     os.makedirs(os.path.join("pdfs", "product_images"), exist_ok=True)
-    filename = f"product_{product_id}_{int(datetime.datetime.utcnow().timestamp())}{ext}"
+    filename = f"product_{product_id}_{view_index}_{int(datetime.datetime.utcnow().timestamp())}{ext}"
     filepath = os.path.join("pdfs", "product_images", filename)
 
     contents = await file.read()
@@ -796,16 +797,31 @@ async def upload_product_image(
 
     image_url = f"/static/pdfs/product_images/{filename}"
 
-    # Update vendor product images
-    product.images = [image_url]
+    # Update vendor product images array at view_index
+    images = list(product.images) if product.images else []
+    while len(images) <= view_index:
+        images.append("")
+    images[view_index] = image_url
+    
+    # Filter out trailing empty slots
+    while images and not images[-1]:
+        images.pop()
+        
+    product.images = images
     
     # Update customer-facing catalog Product table thumbnail
     cust_product = db.query(Product).filter(Product.id == product_id).first()
     if cust_product:
-        cust_product.thumbnail_url = image_url
+        cust_product.thumbnail_url = images[0] if (images and images[0]) else ""
+        cust_product.images = images
+        
+        # Save images list to variants["images"] as well
+        vars_dict = dict(cust_product.variants) if cust_product.variants else {}
+        vars_dict["images"] = images
+        cust_product.variants = vars_dict
 
     db.commit()
-    return {"success": True, "image_url": image_url}
+    return {"success": True, "image_url": image_url, "images": images}
 
 
 # --- INVENTORY MANAGEMENT ENDPOINTS ---
