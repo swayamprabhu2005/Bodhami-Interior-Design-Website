@@ -941,7 +941,17 @@ def delete_project(
             f"Cannot delete a project in '{project.status}' status. Only draft or quoted projects can be deleted."
         )
     
-    # Cascade delete: rooms, room_items, quotations, trackings, renders are handled by DB relationships
+    # Explicitly cascade delete related vendor assignments, payouts, status histories, and proofs
+    from ..models import VendorAssignment, VendorPayout, ItemStatusHistory, ItemProofImage
+    
+    assignment_ids = [r[0] for r in db.query(VendorAssignment.id).filter(VendorAssignment.project_id == project_id).all()]
+    if assignment_ids:
+        db.query(ItemStatusHistory).filter(ItemStatusHistory.assignment_id.in_(assignment_ids)).delete(synchronize_session=False)
+        db.query(ItemProofImage).filter(ItemProofImage.assignment_id.in_(assignment_ids)).delete(synchronize_session=False)
+        
+    db.query(VendorAssignment).filter(VendorAssignment.project_id == project_id).delete(synchronize_session=False)
+    db.query(VendorPayout).filter(VendorPayout.project_id == project_id).delete(synchronize_session=False)
+
     db.delete(project)
     db.commit()
     return {"success": True, "message": f"Project '{project.property_name}' deleted successfully."}

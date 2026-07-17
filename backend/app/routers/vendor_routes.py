@@ -384,7 +384,7 @@ def get_vendor_dashboard(
         serialized_assignments.append({
             "id": a.id,
             "projectId": a.project_id,
-            "projectName": project.property_name if project else "Unknown Project",
+            "projectName": f"{project.property_name} ({project.pincode})" if project else "Unknown Project",
             "itemId": a.item_id,
             "itemName": product.name if product else "Custom Item",
             "quantity": item.qty if item else 1,
@@ -962,7 +962,7 @@ def get_vendor_assignments(
         res.append({
             "id": a.id,
             "projectId": a.project_id,
-            "projectName": project.property_name if project else "Unknown Project",
+            "projectName": f"{project.property_name} ({project.pincode})" if project else "Unknown Project",
             "customerName": customer.name if customer else "Unknown Customer",
             "customerPhone": customer.phone if customer else "N/A",
             "city": project.city if project else "N/A",
@@ -1363,7 +1363,7 @@ def get_vendor_payouts(
             "id": p.id,
             "amount": p.amount,
             "projectId": p.project_id,
-            "projectName": project.property_name if project else "Unknown Project",
+            "projectName": f"{project.property_name} ({project.pincode})" if project else "Unknown Project",
             "payoutDate": p.payout_date,
             "status": p.status,
             "statementUrl": p.statement_url,

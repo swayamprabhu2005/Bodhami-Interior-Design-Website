@@ -188,11 +188,19 @@ export default function GuidedCustomizePage() {
       setCustomizingProduct(null)
       await loadProject()
 
-      // Automatically move to the next incomplete category to streamline workflow
+      // Automatically move to the next category or next room tab
       const categories = getCategoriesForActiveRoom()
       const currentIdx = categories.findIndex((c) => c.id === selectedCategory)
-      if (currentIdx !== -1 && currentIdx < categories.length - 1) {
-        setSelectedCategory(categories[currentIdx + 1].id)
+      if (currentIdx !== -1) {
+        if (currentIdx < categories.length - 1) {
+          // Go to next category in current room
+          setSelectedCategory(categories[currentIdx + 1].id)
+        } else if (activeRoomIdx < (project?.rooms?.length || 0) - 1) {
+          // Last category of current room is done; auto-progress to next room tab
+          setActiveRoomIdx(activeRoomIdx + 1)
+          const nextRoomName = project.rooms[activeRoomIdx + 1].room_type.replace('_', ' ').toUpperCase()
+          toast.success(`Switching to next room: ${nextRoomName}! 🚪`)
+        }
       }
     } catch {
       toast.error('Failed to save product selection')

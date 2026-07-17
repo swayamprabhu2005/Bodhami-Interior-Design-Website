@@ -80,6 +80,32 @@ export default function VendorProductsPage() {
   const [editingProduct, setEditingProduct] = useState<any | null>(null)
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
 
+  // Search & Filter state variables
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterCategory, setFilterCategory] = useState('All')
+  const [filterColor, setFilterColor] = useState('All')
+  const [maxPriceFilter, setMaxPriceFilter] = useState<number | ''>('')
+
+  const uniqueColors = Array.from(
+    new Set(
+      products.flatMap(p => {
+        const v = p.variants || {}
+        return Array.isArray(v.color) ? v.color : []
+      })
+    )
+  ).sort()
+
+  const filteredProducts = products.filter(p => {
+    const term = searchTerm.toLowerCase().trim()
+    const nameMatch = !term || p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term)
+    const catMatch = filterCategory === 'All' || p.category === filterCategory
+    const v = p.variants || {}
+    const pColors = Array.isArray(v.color) ? v.color.map((c: string) => c.toLowerCase()) : []
+    const colorMatch = filterColor === 'All' || pColors.includes(filterColor.toLowerCase())
+    const priceMatch = maxPriceFilter === '' || p.basePrice <= maxPriceFilter
+    return nameMatch && catMatch && colorMatch && priceMatch
+  })
+
   // Product image state
   const [productImageFile, setProductImageFile] = useState<File | null>(null)
   const [productImagePreview, setProductImagePreview] = useState<string>('')
@@ -311,6 +337,52 @@ export default function VendorProductsPage() {
         </button>
       </div>
 
+      {/* Search and Filters Panel */}
+      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="space-y-1">
+          <label className="text-[10px] text-slate-400 font-bold uppercase">Search</label>
+          <input
+            type="text"
+            placeholder="Search name or SKU..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] text-slate-400 font-bold uppercase">Category</label>
+          <select
+            value={filterCategory}
+            onChange={e => setFilterCategory(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+          >
+            <option value="All">All Categories</option>
+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] text-slate-400 font-bold uppercase">Color</label>
+          <select
+            value={filterColor}
+            onChange={e => setFilterColor(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+          >
+            <option value="All">All Colors</option>
+            {uniqueColors.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] text-slate-400 font-bold uppercase">Max Price (₹)</label>
+          <input
+            type="number"
+            placeholder="Max price..."
+            value={maxPriceFilter}
+            onChange={e => setMaxPriceFilter(e.target.value ? Number(e.target.value) : '')}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
+      </div>
+
       {/* Cards */}
       {loading && products.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -322,9 +394,15 @@ export default function VendorProductsPage() {
           <h3 className="font-extrabold text-slate-800 text-sm">No products yet</h3>
           <p className="text-slate-400 text-xs mt-1">Add products with color, fabric & size options.</p>
         </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="text-center py-20 bg-white border border-slate-100 rounded-2xl p-6 max-w-lg mx-auto">
+          <Package className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+          <h3 className="font-extrabold text-slate-800 text-sm">No matching products found</h3>
+          <p className="text-slate-400 text-xs mt-1">Try adjusting your filters or search keywords.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {products.map(p => {
+          {filteredProducts.map(p => {
             const v = p.variants || {}
             const totalQty = p.inventory?.availableQty ?? 0
             const isExp = expandedCard === p.id

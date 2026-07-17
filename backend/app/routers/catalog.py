@@ -236,19 +236,73 @@ def list_products(
         if project and project.color_preferences:
             color_prefs = project.color_preferences
 
-    # Check if exact color match is found
+    # Filter products based on color preferences
     exact_color_match_found = True
     if color_prefs and all_prods:
-        exact_match = False
+        exact_matches = []
+        token_matches = []
+        
+        # Build token sets for preferred colors (excluding generic words)
+        ignore_words = {'and', 'or', 'with', 'set', 'table', 'chair', 'bed', 'sofa', 'rug', 'lighting', 'vanity', 'cabinet'}
+        pref_tokens = set()
+        for pref in color_prefs:
+            for word in pref.lower().split():
+                if len(word) > 2 and word not in ignore_words:
+                    pref_tokens.add(word)
+        
+        # Also treat 'gray' and 'grey' as synonyms
+        if 'gray' in pref_tokens:
+            pref_tokens.add('grey')
+        if 'grey' in pref_tokens:
+            pref_tokens.add('gray')
+
         for p in all_prods:
             p_colors = p.color_variants or []
             if not p_colors and p.variants and isinstance(p.variants, dict):
                 p_colors = p.variants.get("color", [])
             p_colors_lower = [c.lower().strip() for c in p_colors]
-            if any(uc.lower().strip() in p_colors_lower for uc in color_prefs):
-                exact_match = True
-                break
-        exact_color_match_found = exact_match
+            
+            # 1. Check exact match
+            has_exact = False
+            for uc in color_prefs:
+                uc_clean = uc.lower().strip()
+                if uc_clean in p_colors_lower or uc_clean in p.name.lower():
+                    has_exact = True
+                    break
+            
+            if has_exact:
+                exact_matches.append(p)
+                continue
+                
+            # 2. Check token match
+            has_token = False
+            # Check in product colors
+            for pc in p_colors_lower:
+                for word in pc.split():
+                    if word in pref_tokens:
+                        has_token = True
+                        break
+                if has_token:
+                    break
+            # Also check in product name
+            if not has_token:
+                for word in p.name.lower().split():
+                    if word in pref_tokens:
+                        has_token = True
+                        break
+            
+            if has_token:
+                token_matches.append(p)
+
+        if exact_matches:
+            all_prods = exact_matches
+            exact_color_match_found = True
+        elif token_matches:
+            all_prods = token_matches
+            exact_color_match_found = True
+        else:
+            # Fallback: if no matches at all, keep all_prods but flag match as False
+            exact_color_match_found = False
 
     # Pincode priority vendor sets
     exact_ids = set()
