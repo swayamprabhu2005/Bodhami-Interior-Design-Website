@@ -410,7 +410,7 @@ export default function QuotationPage() {
                 <button
                   onClick={() => {
                     if (quotation.status === 'approved') {
-                      router.push('/dashboard')
+                      router.push(`/track/${projectId}`)
                     } else {
                       toast.error('Please approve quotation before proceeding to execution.')
                     }

@@ -188,7 +188,7 @@ export const recommendationsAPI = {
 // Tracking API
 export const trackingAPI = {
   getMilestones: (projectId: string) =>
-    axiosInstance.get(`/api/v1/tracking/${projectId}/milestones`),
+    axiosInstance.get(`/api/v1/tracking/${projectId}`),
   
   updateMilestone: (projectId: string, milestoneId: string, data: { status: string; photo_url?: string }) =>
     axiosInstance.put(`/api/v1/tracking/${projectId}/milestones/${milestoneId}`, data),

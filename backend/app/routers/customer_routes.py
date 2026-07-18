@@ -44,6 +44,7 @@ def upload_floorplan(
     file_id = str(uuid.uuid4())
     ext = file.filename.split(".")[-1]
     filename = f"{file_id}.{ext}"
+    os.makedirs("pdfs/floor_plans", exist_ok=True)
     filepath = f"pdfs/floor_plans/{filename}"
     
     with open(filepath, "wb") as f:
@@ -360,6 +361,7 @@ def upload_photo(
         file_id = str(uuid.uuid4())
         ext = file.filename.split(".")[-1]
         filename = f"{file_id}.{ext}"
+        os.makedirs("pdfs/floor_plans", exist_ok=True)
         filepath = f"pdfs/floor_plans/{filename}"
         with open(filepath, "wb") as f:
             f.write(file.file.read())
@@ -992,7 +994,7 @@ def get_proof_photos(
                         "image_url": p.image_url,
                         "image_type": p.image_type,
                         "caption": p.caption,
-                        "created_at": p.created_at.isoformat() if p.created_at else None,
+                        "created_at": p.uploaded_at.isoformat() if p.uploaded_at else None,
                     }
                     for p in proofs
                 ]

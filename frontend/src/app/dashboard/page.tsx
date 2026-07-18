@@ -26,6 +26,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }>
 const CITIES = ['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad', 'Other']
 
 function ProjectCard({ project, onDelete }: { project: any; onDelete: (id: string) => void }) {
+  const { user } = useAuthStore()
   const status = STATUS_CONFIG[project.status] || STATUS_CONFIG.draft
   const isExecution = ['ordered', 'done'].includes(project.status)
 
@@ -125,7 +126,7 @@ function ProjectCard({ project, onDelete }: { project: any; onDelete: (id: strin
           )}
         </div>
 
-        {isExecution && (
+        {isExecution && user?.role !== 'customer' && (
           <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
             <Link href={`/projects/${project.id}/team`}
               className="flex-1 text-center py-2 bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 text-slate-600 text-[10px] font-bold rounded-lg transition-all">

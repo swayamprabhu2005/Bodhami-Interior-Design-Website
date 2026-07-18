@@ -58,6 +58,12 @@ InteriorAI is a comprehensive, premium web application designed to simplify the 
     If a customer returns to the quotation page after editing their configurations when their previous quote was `'rejected'` or `'under_revision'`, the page automatically triggers a new PDF and quote calculations to present updated figures immediately.
 *   **Custom Glassmorphic Project Deletion (New):**  
     Replaces browser native alerts with a premium glassmorphic confirmation modal featuring slide-up animations, backdrop blurs (`bg-white/80 backdrop-blur-xl`), and detailed info checks.
+*   **Customer Tracking & Sourcing Redesign (New):**  
+    Replaces customer-side dropdown lists with a dual horizontal tracker system. A read-only **Vendor Status Bar** visualizes item sourcing progress (Ordered to Dispatched) in real-time. An interactive **Customer Verification Bar** permits the customer to directly confirm deliveries and installations.
+*   **Solid Container Backgrounds & Contrast Controls (New):**  
+    Ensures optimal text contrast on light/purple mesh gradients by wrapping primary dashboard tracking sections in a solid dark navy-indigo shade (`bg-[#0f1129]`).
+*   **Purple-Indigo Gradient File Uploader (New):**  
+    Features a high-visibility file upload action button styled with custom purple-to-indigo gradient layouts inside verification forms.
 *   **Seeded Assets Track Status:**  
     The custom-generated component images in `backend/pdfs/catalog/` are tracked directly inside Git (deliberately omitted from `.gitignore`) to ensure a fresh repository clone receives the visual catalog out-of-the-box.
 
